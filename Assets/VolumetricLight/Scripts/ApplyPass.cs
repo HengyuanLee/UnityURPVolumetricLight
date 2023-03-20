@@ -10,25 +10,25 @@ public class ApplyPass : ScriptableRenderPass
     public VolumetricLightFeature m_Feature;
 
     private Material m_ApplyMaterial;
-    private RenderTargetIdentifier m_Srouce;
-    private RenderTargetHandle m_Dest;
     private CommandBuffer m_ApplyCommand;
     private RenderTargetHandle m_BlurTempTex;
     private RenderTargetHandle m_FullRayMarchTex;
+    RenderTargetHandle m_TemporaryColorTexture;
     public ApplyPass()
     {
-        renderPassEvent = RenderPassEvent.AfterRenderingPostProcessing;
+        renderPassEvent = RenderPassEvent.BeforeRenderingPostProcessing;
         m_ApplyMaterial = CoreUtils.CreateEngineMaterial("Hidden/Apply");
         int downSampleCout = m_VolumtericResolution == VolumtericResolution.Full ? 1 : m_VolumtericResolution == VolumtericResolution.Half ? 2 : 4;
         m_ApplyMaterial.SetInt("_DownSampleCount", downSampleCout);
         m_BlurTempTex.Init("BlurTempTex");
         m_FullRayMarchTex.Init("FullRayMarchTex");
+        m_TemporaryColorTexture.Init("m_TemporaryColorTexture");
+        m_TempColorTexHandle = RTHandles.Alloc("m_TempColorTexHandle");
     }
-
-    public void Setup(RenderTargetIdentifier source, RenderTargetHandle dest)
+    ScriptableRenderer m_Renderer;
+    public void Setup(ScriptableRenderer renderer)
     {
-        m_Srouce = source;
-        m_Dest = dest;
+        m_Renderer = renderer;
     }
     public override void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescriptor)
     {
@@ -46,6 +46,8 @@ public class ApplyPass : ScriptableRenderPass
             descriptor.height /= 4;
         }
         cmd.GetTemporaryRT(m_BlurTempTex.id, descriptor, FilterMode.Bilinear);
+        cmd.GetTemporaryRT(m_TemporaryColorTexture.id, descriptor, FilterMode.Bilinear);
+
     }
     public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
     {
@@ -57,19 +59,20 @@ public class ApplyPass : ScriptableRenderPass
         context.ExecuteCommandBuffer(m_ApplyCommand);
         CommandBufferPool.Release(m_ApplyCommand);
     }
+    RTHandle m_TempColorTexHandle;
     void Render(CommandBuffer cmd, ref RenderingData renderingData)
     {
         if (renderingData.cameraData.isSceneViewCamera) return;
-        Texture nullTex = null;
-        cmd.SetGlobalTexture("_SourceTex", m_Srouce);
-        Blit(cmd, nullTex, m_Dest.Identifier(), m_ApplyMaterial);
+        cmd.SetGlobalTexture("_SourceTex", m_Renderer.cameraColorTargetHandle);
+        Blit(cmd, m_TempColorTexHandle, m_TemporaryColorTexture.Identifier(), m_ApplyMaterial);
+        Blit(cmd, m_TemporaryColorTexture.Identifier(), m_Renderer.cameraColorTargetHandle);
+
     }
     public override void FrameCleanup(CommandBuffer cmd)
     {
-        if (m_Dest == RenderTargetHandle.CameraTarget)
-        {
-            cmd.ReleaseTemporaryRT(m_BlurTempTex.id);
-            cmd.ReleaseTemporaryRT(m_FullRayMarchTex.id);
-        }
+        cmd.ReleaseTemporaryRT(m_BlurTempTex.id);
+        cmd.ReleaseTemporaryRT(m_FullRayMarchTex.id);
+        cmd.ReleaseTemporaryRT(m_TemporaryColorTexture.id);
+        m_TempColorTexHandle.Release();
     }
 }

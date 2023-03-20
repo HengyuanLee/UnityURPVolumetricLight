@@ -9,8 +9,6 @@ public class SampleDepthTexPass : ScriptableRenderPass
     private Material m_DownSampleMaterial;
     public VolumtericResolution m_VolumtericResolution;
     private CommandBuffer m_SampleDepthTexCommand;
-    private RenderTargetIdentifier m_Srouce;
-    private RenderTargetHandle m_Dest;
     private RenderTargetHandle m_FullCameraDepthTexture;
     private RenderTargetHandle m_HalfCameraDepthTexture;
     private RenderTargetHandle m_QuarterCameraDepthTexture;
@@ -40,10 +38,6 @@ public class SampleDepthTexPass : ScriptableRenderPass
         m_DownSampleMaterial = CoreUtils.CreateEngineMaterial("Hidden/Universal Render Pipeline/Sampling");
     }
 
-    public void Setup(RenderTargetIdentifier source,RenderTargetHandle dest) {
-        m_Srouce = source;
-        m_Dest = dest;
-    }
     public override void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescriptor)
     {
         base.Configure(cmd, cameraTextureDescriptor);
@@ -105,11 +99,8 @@ public class SampleDepthTexPass : ScriptableRenderPass
     }
     public override void FrameCleanup(CommandBuffer cmd)
     {
-        if (m_Dest == RenderTargetHandle.CameraTarget)
-        {
-            cmd.ReleaseTemporaryRT(m_FullCameraDepthTexture.id);
-            cmd.ReleaseTemporaryRT(m_HalfCameraDepthTexture.id);
-            cmd.ReleaseTemporaryRT(m_QuarterCameraDepthTexture.id);
-        }
+        cmd.ReleaseTemporaryRT(m_FullCameraDepthTexture.id);
+        cmd.ReleaseTemporaryRT(m_HalfCameraDepthTexture.id);
+        cmd.ReleaseTemporaryRT(m_QuarterCameraDepthTexture.id);
     }
 }

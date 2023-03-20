@@ -16,7 +16,7 @@ public class VolumetricLightFeature : ScriptableRendererFeature
         public VolumtericResolution resolution;
         [Range(0.0f, 1.0f)]
         public float FogHeightCoef = 0.0f;
-        [Range(0.0f, 1.0f)]
+        [Range(0.0f, 2.0f)]
         public float ShadowProjCoef = 0.03f;
         [Range(0.0f, 1.0f)]
         public float DensityCoef = 0.15f;
@@ -28,7 +28,6 @@ public class VolumetricLightFeature : ScriptableRendererFeature
         public float MieG = 0.32f;
     }
     public Settings setting = new Settings();
-    private RenderTargetHandle dest;
 
 
     public SampleDepthTexPass m_SampleDepthTexPass { get; private set; }
@@ -54,16 +53,12 @@ public class VolumetricLightFeature : ScriptableRendererFeature
 
     public override void AddRenderPasses(ScriptableRenderer renderer, ref RenderingData renderingData)
     {
-        var src = renderer.cameraColorTarget;
-        dest = RenderTargetHandle.CameraTarget;
-
-        m_SampleDepthTexPass.Setup(src, dest);
         renderer.EnqueuePass(m_SampleDepthTexPass);
 
-        m_RayMarchLightPass.Setup(src, dest, setting);
+        m_RayMarchLightPass.Setup(setting);
         renderer.EnqueuePass(m_RayMarchLightPass);
 
-        m_BlitAddPass.Setup(src, dest);
+        m_BlitAddPass.Setup(renderer);
         renderer.EnqueuePass(m_BlitAddPass);
     }
 }

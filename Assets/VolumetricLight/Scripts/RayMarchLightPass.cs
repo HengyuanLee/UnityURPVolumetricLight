@@ -12,8 +12,6 @@ public class RayMarchLightPass : ScriptableRenderPass
     private Material m_RayMarchLightMaterial;
     private Material m_BilateralBlurMaterial;
 
-    private RenderTargetIdentifier m_Srouce;
-    private RenderTargetHandle m_Dest;
     private RenderTargetHandle m_RayMarchTexture;
     private RenderTargetHandle m_TempBlurTexture_1;
     private RenderTargetHandle m_TempBlurTexture_2;
@@ -24,7 +22,7 @@ public class RayMarchLightPass : ScriptableRenderPass
 
     public RayMarchLightPass()
     {
-        renderPassEvent = RenderPassEvent.BeforeRenderingPostProcessing;
+        renderPassEvent = RenderPassEvent.BeforeRenderingPostProcessing-1;
         m_RayMarchTexture.Init("RayMarchTexture");
         m_TempBlurTexture_1.Init("TempBlurTexture_1");
         m_TempBlurTexture_2.Init("TempBlurTexture_2");
@@ -51,10 +49,8 @@ public class RayMarchLightPass : ScriptableRenderPass
         }
     }
 
-    public void Setup(RenderTargetIdentifier source, RenderTargetHandle dest, VolumetricLightFeature.Settings settings)
+    public void Setup(VolumetricLightFeature.Settings settings)
     {
-        m_Srouce = source;
-        m_Dest = dest;
         m_Settings = settings;
     }
     public override void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescriptor)
@@ -137,12 +133,9 @@ public class RayMarchLightPass : ScriptableRenderPass
 
     public override void FrameCleanup(CommandBuffer cmd)
     {
-        if (m_Dest == RenderTargetHandle.CameraTarget)
-        {
-            cmd.ReleaseTemporaryRT(m_TempBlurTexture_1.id);
-            cmd.ReleaseTemporaryRT(m_TempBlurTexture_2.id);
-            cmd.ReleaseTemporaryRT(m_RayMarchTexture.id);
-        }
+        cmd.ReleaseTemporaryRT(m_TempBlurTexture_1.id);
+        cmd.ReleaseTemporaryRT(m_TempBlurTexture_2.id);
+        cmd.ReleaseTemporaryRT(m_RayMarchTexture.id);
     }
     private Texture2D _ditheringTexture;
     private void GenerateDitherTexture()
