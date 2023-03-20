@@ -72,6 +72,7 @@ public class RayMarchLightPass : ScriptableRenderPass
         cmd.GetTemporaryRT(m_TempBlurTexture_2.id, descriptor, FilterMode.Bilinear);
         cmd.GetTemporaryRT(m_TempBlurTexture_1.id, descriptor, FilterMode.Bilinear);
         Vector3 camDir = GameObject.Find("Main Camera").transform.forward;
+        m_RayMarchLightMaterial.SetColor("_TintColor", m_Settings.TintColor);
         m_RayMarchLightMaterial.SetVector("_CameraForward", camDir);
         m_RayMarchLightMaterial.SetInt("_SampleCount", m_Settings.SampleCount);
         m_RayMarchLightMaterial.SetFloat("_ShadowProjCoef", m_Settings.ShadowProjCoef);

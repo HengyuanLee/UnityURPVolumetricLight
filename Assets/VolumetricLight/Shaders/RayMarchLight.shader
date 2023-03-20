@@ -24,6 +24,7 @@
 		float4 _LightDir;
 		float _MaxRayLength;
 		int _SampleCount;
+		half4 _TintColor;
 
 		float4 _FrustumCorners[4];
 		struct Attributes
@@ -131,7 +132,7 @@
 				float rayLength = length(rayDir);
 				rayDir /= rayLength;
 
-				float4 color = RayMarch(IN.positionHCS.xy, _WorldSpaceCameraPos, rayDir, rayLength);
+				float4 color = RayMarch(IN.positionHCS.xy, _WorldSpaceCameraPos, rayDir, rayLength) * _TintColor;
 				return color;
 			}
 			ENDHLSL

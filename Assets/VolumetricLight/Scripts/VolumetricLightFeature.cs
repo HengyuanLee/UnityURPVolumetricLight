@@ -14,6 +14,7 @@ public class VolumetricLightFeature : ScriptableRendererFeature
     public class Settings
     {
         public VolumtericResolution resolution;
+        public Color TintColor = Color.white;
         [Range(0.0f, 1.0f)]
         public float FogHeightCoef = 0.0f;
         [Range(0.0f, 2.0f)]
